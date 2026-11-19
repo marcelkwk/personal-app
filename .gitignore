@@ -1,0 +1,6 @@
+ios/build/
+ios/PersonalApp.xcodeproj/
+ios/Sources/Info.plist
+out/
+*.ipa
+.DS_Store

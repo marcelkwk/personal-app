@@ -1,0 +1,126 @@
+:root {
+  --bg: #0d0f12;
+  --bg2: #16191e;
+  --line: #24282f;
+  --ink: #e8eaed;
+  --dim: #8b929c;
+  --acc: #7cd66b;
+  --acc-ink: #08130a;
+  --danger: #e06b6b;
+  --pad: env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.45 -apple-system, "SF Pro Text", system-ui, sans-serif;
+  overscroll-behavior-y: none;
+}
+
+body { display: flex; flex-direction: column; }
+
+.bar {
+  position: sticky; top: 0; z-index: 5;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 14px 8px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+
+.bar-row { display: flex; align-items: center; gap: 8px; }
+.bar-row + .bar-row { margin-top: 8px; }
+
+h1 {
+  margin: 0; flex: 1;
+  font-size: 19px; font-weight: 650; letter-spacing: -.01em;
+}
+
+.count { font-size: 12px; color: var(--dim); font-variant-numeric: tabular-nums; }
+
+input[type=search] {
+  flex: 1; min-width: 0;
+  background: var(--bg2); border: 1px solid var(--line); border-radius: 10px;
+  color: var(--ink); padding: 9px 11px; font-size: 16px;
+  outline: none;
+}
+input[type=search]:focus { border-color: var(--acc); }
+
+button {
+  font: inherit; color: inherit; background: none; border: 0;
+  padding: 0; cursor: pointer;
+}
+button:active { transform: scale(.97); }
+
+.ghost {
+  padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px;
+  color: var(--dim); font-size: 14px; white-space: nowrap;
+}
+
+.chips { display: flex; gap: 6px; overflow-x: auto; padding: 8px 0 2px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+
+.chip {
+  flex: 0 0 auto; padding: 6px 11px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--dim); font-size: 13px;
+}
+.chip[aria-pressed=true] { background: var(--acc); border-color: var(--acc); color: var(--acc-ink); font-weight: 600; }
+
+.list { flex: 1; padding: 10px 14px calc(150px + var(--pad)); }
+
+.day { margin: 18px 0 6px; font-size: 12px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: .06em; }
+.day:first-child { margin-top: 4px; }
+
+.entry {
+  display: grid; grid-template-columns: 1fr auto; gap: 2px 10px;
+  padding: 11px 0; border-bottom: 1px solid var(--line);
+}
+.meta { grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--dim); }
+.tag { color: var(--acc); }
+.body { grid-column: 1; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.del { align-self: start; color: var(--dim); font-size: 20px; line-height: 1; padding: 2px 4px; }
+.del:active { color: var(--danger); }
+
+.empty { color: var(--dim); text-align: center; padding: 48px 10px; }
+
+.composer {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
+  padding: 8px 14px calc(10px + var(--pad));
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line);
+}
+.composer .chips { padding: 0 0 8px; }
+
+.composer-row { display: flex; gap: 8px; align-items: flex-end; }
+
+textarea {
+  flex: 1; min-height: 44px; max-height: 40vh; resize: none;
+  background: var(--bg2); border: 1px solid var(--line); border-radius: 12px;
+  color: var(--ink); padding: 11px 12px; font: inherit; outline: none;
+}
+textarea:focus { border-color: var(--acc); }
+
+.primary {
+  flex: 0 0 46px; height: 46px; border-radius: 12px;
+  background: var(--acc); color: var(--acc-ink);
+  font-size: 26px; line-height: 1; font-weight: 500;
+}
+.primary:disabled { opacity: .35; }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(96px + var(--pad)); transform: translateX(-50%);
+  background: var(--bg2); border: 1px solid var(--line); border-radius: 10px;
+  padding: 9px 14px; font-size: 14px; z-index: 20;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f7f8f6; --bg2: #fff; --line: #e2e5df;
+    --ink: #14171a; --dim: #6b7178; --acc: #2f8f28; --acc-ink: #fff;
+  }
+}

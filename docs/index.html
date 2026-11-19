@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Logbuch">
+<meta name="theme-color" content="#0d0f12">
+<title>Logbuch</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="bar">
+  <div class="bar-row">
+    <h1>Logbuch</h1>
+    <span class="count" id="count">0 heute</span>
+  </div>
+  <div class="bar-row">
+    <input id="q" type="search" placeholder="Suchen" autocomplete="off" spellcheck="false">
+    <button id="import" class="ghost" title="Datei einlesen">Laden</button>
+    <button id="export" class="ghost" title="Alles als Datei sichern">Sichern</button>
+  </div>
+  <div class="chips" id="tags"></div>
+</header>
+
+<main id="list" class="list"></main>
+
+<div class="composer">
+  <div class="chips" id="tagpick"></div>
+  <div class="composer-row">
+    <textarea id="text" rows="1" placeholder="Was ist passiert?" enterkeyhint="enter"></textarea>
+    <button id="save" class="primary" aria-label="Speichern">+</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>

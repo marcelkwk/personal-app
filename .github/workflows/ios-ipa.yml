@@ -1,0 +1,62 @@
+name: ipa
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ios/**"
+      - ".github/workflows/ios-ipa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ipa
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Werkzeuge
+        run: brew install xcodegen
+
+      - name: Projekt erzeugen
+        working-directory: ios
+        run: xcodegen generate
+
+      - name: Unsigned Build
+        working-directory: ios
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project PersonalApp.xcodeproj \
+            -target PersonalApp \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            ARCHS=arm64 ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: IPA packen
+        run: |
+          APP="ios/build/Build/Products/Release-iphoneos/Logbuch.app"
+          mkdir -p out/Payload
+          cp -R "$APP" out/Payload/
+          cd out && zip -qry Logbuch.ipa Payload
+          ls -lh Logbuch.ipa
+
+      - name: Release anhaengen
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="build-${{ github.run_number }}"
+          gh release create "$TAG" out/Logbuch.ipa \
+            --title "Build ${{ github.run_number }}" \
+            --notes "Unsigned IPA. Auf dem iPhone in Tetherless importieren und mit eigener Apple-ID signieren." \
+            --latest
