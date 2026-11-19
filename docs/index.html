@@ -32,8 +32,16 @@
 <div class="composer">
   <div class="chips" id="tagpick"></div>
   <div class="composer-row">
+    <button id="bell" class="ring" aria-label="Erinnern">🔔</button>
     <textarea id="text" rows="1" placeholder="Was ist passiert?" enterkeyhint="enter"></textarea>
     <button id="save" class="primary" aria-label="Speichern">+</button>
+  </div>
+  <div class="when" id="when" hidden>
+    <span>Erinnern in</span>
+    <button data-min="15">15 Min</button>
+    <button data-min="60">1 Std</button>
+    <button data-min="1440">1 Tag</button>
+    <button id="when-cancel" class="mute">ab</button>
   </div>
 </div>
 

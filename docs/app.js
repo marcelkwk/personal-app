@@ -214,6 +214,43 @@ function importFile() {
 }
 
 saveBtn.onclick = add;
+
+const when = $("when");
+
+$("bell").onclick = () => {
+  if (!text.value.trim()) return toast("Erst Text schreiben");
+  when.hidden = false;
+};
+
+$("when-cancel").onclick = () => (when.hidden = true);
+
+for (const b of when.querySelectorAll("button[data-min]")) {
+  b.onclick = () => remind(Number(b.dataset.min));
+}
+
+async function remind(minutes) {
+  const value = text.value.trim();
+  when.hidden = true;
+  if (!value) return;
+
+  add();
+
+  const title = "Logbuch";
+  const body = value.length > 120 ? value.slice(0, 117) + "…" : value;
+
+  if (window.webkit?.messageHandlers?.notify) {
+    window.webkit.messageHandlers.notify.postMessage({ title, body, minutes });
+    toast(minutes >= 1440 ? "Erinnerung morgen" : "Erinnerung gesetzt");
+    return;
+  }
+
+  if (!("Notification" in window)) return toast("Erinnerung nur in der App");
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") return toast("Nicht erlaubt");
+  toast("Nur solange die Seite offen ist");
+  setTimeout(() => new Notification(title, { body }), minutes * 60000);
+}
+
 text.addEventListener("input", autosize);
 text.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {

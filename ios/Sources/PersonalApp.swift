@@ -27,6 +27,8 @@ final class WebModel: ObservableObject {
 
 struct ContentView: View {
     @StateObject private var model = WebModel()
+    @ObservedObject private var reminder = Reminder.shared
+    @State private var showSettings = false
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -57,6 +59,77 @@ struct ContentView: View {
                 .padding(32)
                 .frame(maxHeight: .infinity)
             }
+
+            HStack {
+                Spacer()
+                Button {
+                    showSettings = true
+                } label: {
+                    Image(systemName: reminder.dailyOn ? "bell.badge.fill" : "bell")
+                        .font(.system(size: 16, weight: .semibold))
+                        .frame(width: 40, height: 40)
+                        .background(.ultraThinMaterial, in: Circle())
+                }
+                .tint(.primary)
+            }
+            .padding(.trailing, 14)
+            .frame(maxHeight: .infinity, alignment: .bottom)
+            .padding(.bottom, 128)
+        }
+        .sheet(isPresented: $showSettings) {
+            ReminderSheet()
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+        }
+        .task {
+            reminder.refreshStatus()
+            reminder.applyDaily()
+        }
+    }
+}
+
+struct ReminderSheet: View {
+    @ObservedObject var reminder = Reminder.shared
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    switch reminder.status {
+                    case .authorized, .provisional, .ephemeral:
+                        Toggle("Täglich erinnern", isOn: $reminder.dailyOn)
+                        if reminder.dailyOn {
+                            DatePicker("Uhrzeit", selection: $reminder.time, displayedComponents: .hourAndMinute)
+                        }
+                    case .denied:
+                        Text("Benachrichtigungen sind für Logbuch abgeschaltet.")
+                            .font(.footnote)
+                        Button("In den Einstellungen erlauben") { reminder.openSystem() }
+                    default:
+                        Text("Für Erinnerungen braucht Logbuch deine Freigabe.")
+                            .font(.footnote)
+                        Button("Benachrichtigungen erlauben") { reminder.ask() }
+                            .buttonStyle(.borderedProminent)
+                    }
+                } header: {
+                    Text("Erinnerungen")
+                } footer: {
+                    Text("Die tägliche Erinnerung kommt lokal, ohne Server. Sie bleibt gesetzt, bis du sie hier abschaltest.")
+                }
+
+                Section {
+                    Button("Test schicken") { reminder.test() }
+                        .disabled(reminder.status == .denied)
+                }
+            }
+            .navigationTitle("Benachrichtigungen")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Fertig") { dismiss() }
+                }
+            }
         }
     }
 }
@@ -70,6 +143,7 @@ struct WebView: UIViewRepresentable {
         let config = WKWebViewConfiguration()
         config.websiteDataStore = .default()
         config.allowsInlineMediaPlayback = true
+        config.userContentController.add(context.coordinator, name: "notify")
 
         let view = WKWebView(frame: .zero, configuration: config)
         view.navigationDelegate = context.coordinator
@@ -88,13 +162,30 @@ struct WebView: UIViewRepresentable {
         }
     }
 
-    final class Coordinator: NSObject, WKNavigationDelegate {
+    static func dismantleUIView(_ view: WKWebView, coordinator: Coordinator) {
+        view.configuration.userContentController.removeScriptMessageHandler(forName: "notify")
+    }
+
+    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         let model: WebModel
         var token = UUID()
 
         init(model: WebModel) {
             self.model = model
             self.token = model.reloadToken
+        }
+
+        func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
+            guard message.name == "notify",
+                  let body = message.body as? [String: Any],
+                  let text = body["body"] as? String else { return }
+
+            let title = body["title"] as? String ?? "Logbuch"
+            let minutes = body["minutes"] as? Double ?? 60
+
+            DispatchQueue.main.async {
+                Reminder.shared.later(title: title, body: text, minutes: minutes)
+            }
         }
 
         func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
